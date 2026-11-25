@@ -67,7 +67,8 @@
       screens.forEach(function (el, i) { el.classList.toggle('on', i === best); });
       steps.forEach(function (el, i) { el.classList.toggle('on', i === best); });
       if (phone3d) {
-        phone3d.style.transform = 'perspective(1400px) rotateY(' + lerp(-14, 10, pq) + 'deg) rotateX(' + lerp(8, 2, pq) + 'deg)';
+        // 只用平面的位移和旋转：立体转动（rotateY）在真显卡的 Chrome 里会让圆角裁切错位，屏幕内容跑出外框
+        phone3d.style.transform = 'translateY(' + lerp(20, -20, pq) + 'px) rotate(' + lerp(-2.5, 2.5, pq) + 'deg)';
       }
     }
     if (prints.length && byName.poster) {
@@ -106,6 +107,17 @@
     return { x: Math.max(W * 0.68, right + 60 + rr), y: H * 0.53, r: rr };
   }
   var heroPos = null;
+  // 标题的宽度要等霞鹜文楷加载完才准（电脑上球的位置跟着标题右边走），字到了重新算一次
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { heroPos = null; placeStill(); });
+  // 静态垫图摆到首屏地球的位置：图里地球直径占整张图的 0.854
+  function placeStill() {
+    if (!still || ready) return;
+    if (scrollY > H * 0.5) { still.classList.remove('show'); return; }
+    var p = heroPlace(), d = 2 * p.r / 0.854;
+    still.style.width = d + 'px';
+    still.style.transform = 'translate(' + (p.x - d / 2) + 'px,' + (p.y - d / 2 - scrollY) + 'px)';
+    still.classList.add('show');
+  }
   var SKIN0 = [1, 0, 0, 0, 0];
   function S(o) {
     return {
@@ -282,7 +294,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         if (--left === 0) {
           gl.uniform1i(U.uDay, 0); gl.uniform1i(U.uNight, 1); gl.uniform1i(U.uCloud, 2); gl.uniform1i(U.uMask, 3);
-          ready = true; size(true); cv.classList.add('on'); if (still) still.classList.add('off');
+          ready = true; born = performance.now(); size(true); cv.classList.add('on'); if (still) still.classList.add('off');
         }
       };
       img.src = base + url;
@@ -298,9 +310,10 @@
     cw = w; ch = h; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     if (gl) gl.viewport(0, 0, cv.width, cv.height);
   }
-  addEventListener('resize', function () { W = innerWidth; H = innerHeight; mobile = W < 900; heroPos = null; if (gl) size(false); });
+  addEventListener('resize', function () { W = innerWidth; H = innerHeight; mobile = W < 900; heroPos = null; if (gl) size(false); placeStill(); });
+  placeStill();
 
-  var cur = null, t0 = 0, last = 0;
+  var cur = null, t0 = 0, last = 0, born = 0;
   function frame(now) {
     if (!t0) { t0 = now; last = now; }
     var t = reduce ? 40 : (now - t0) / 1000, dt = Math.min((now - last) / 1000, 0.1); last = now;
@@ -317,8 +330,10 @@
           else cur[k] = lerp(cur[k], tg[k], f);
         }
       }
-      cv.style.opacity = String(cur.alpha);
-      if (cur.alpha > 0.01) draw(cur, t);
+      // 刚加载出来时淡入，跟淡出的静态图交叉过渡
+      var a = cur.alpha * (reduce ? 1 : sm(0, 0.8, (now - born) / 1000));
+      cv.style.opacity = String(a);
+      if (a > 0.01) draw(cur, t);
     }
     requestAnimationFrame(frame);
   }
