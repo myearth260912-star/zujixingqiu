@@ -2,48 +2,302 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>足迹星球</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>足迹星球 - 在3D地球上点亮你去过的地方</title>
+<meta name="description" content="在一颗会转的3D地球上点亮去过的国家和城市，航线自动连起来，照片和游记按地点收好。免费下载，不用注册。">
+<meta name="apple-itunes-app" content="app-id=6836229949">
+<meta name="theme-color" content="#030409">
+<meta property="og:type" content="website">
+<meta property="og:title" content="足迹星球 - 在3D地球上点亮你去过的地方">
+<meta property="og:description" content="在一颗会转的3D地球上点亮去过的国家和城市，航线自动连起来，照片和游记按地点收好。免费下载，不用注册。">
+<meta property="og:image" content="https://myearth260912-star.github.io/zujixingqiu/assets/share.jpg">
+<meta property="og:url" content="https://myearth260912-star.github.io/zujixingqiu/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/icon.png">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<link rel="preload" href="assets/kai.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-:root { color-scheme: dark; }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: #05070D radial-gradient(ellipse at 50% -10%, rgba(64, 120, 220, 0.18), transparent 60%) no-repeat;
-  color: #E9E3D8;
-  font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
-  line-height: 1.75;
-  -webkit-text-size-adjust: 100%;
+@font-face { font-family: FPKai; src: url('assets/kai.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: FPSerif; src: url('assets/serif-latin.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+:root {
+  color-scheme: dark;
+  --bg: #030409; --ink: #F3EEE6; --body: #B3AC9F; --muted: #77716A; --gold: #E8C890; --line: rgba(243, 238, 230, 0.1);
+  --sans: FPKai, "Kaiti SC", "STKaiti", "KaiTi", serif; --display: FPKai, "Kaiti SC", "STKaiti", "KaiTi", serif;
 }
-main { max-width: 680px; margin: 0 auto; padding: 48px 20px 80px; }
-.top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 28px; }
-.brand { color: #F5DDAE; font-size: 15px; letter-spacing: 0.3em; text-decoration: none; }
-.lang { color: #8E887E; font-size: 14px; }
-h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: 0.06em; color: #FFF7E8; }
-h2 { margin: 36px 0 8px; font-size: 18px; color: #F5DDAE; }
-p { margin: 8px 0; color: #CFC8BC; }
-.muted { color: #8E887E; font-size: 14px; }
-a { color: #F5DDAE; }
-.links { display: grid; gap: 12px; margin-top: 32px; }
-.links a { display: block; padding: 16px 18px; border-radius: 12px; background: rgba(245, 239, 230, 0.05); border: 1px solid rgba(245, 239, 230, 0.1); text-decoration: none; }
-.qa { margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(245, 239, 230, 0.04); }
-.qa h2 { margin: 0 0 4px; font-size: 16px; }
-footer { margin-top: 56px; color: #6F6A62; font-size: 13px; }
-:lang(en) .brand, :lang(en) h1 { letter-spacing: normal; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-weight: 500; font-synthesis: none; line-height: 1.8;
+  -webkit-font-smoothing: antialiased; letter-spacing: 0.02em; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+.num { font-family: FPSerif, Georgia, serif; font-variant-numeric: lining-nums; font-feature-settings: 'lnum'; font-weight: 300; }
+.page { position: relative; z-index: 1; }
+@supports (overflow: clip) { .page { overflow-x: clip; } }
+.wrap { position: relative; max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+
+/* 屏幕背后的星空和地球 */
+.sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.6;
+  background-image: radial-gradient(1px 1px at 8% 14%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 22% 38%, #fff 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 37% 9%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 52% 27%, rgba(255,255,255,0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 69% 12%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 83% 31%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 94% 7%, rgba(255,255,255,0.6) 50%, transparent 51%), radial-gradient(1px 1px at 4% 52%, rgba(255,255,255,0.6) 50%, transparent 51%),
+    radial-gradient(1px 1px at 96% 58%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 30% 62%, rgba(255,255,255,0.5) 50%, transparent 51%),
+    radial-gradient(1px 1px at 61% 78%, rgba(255,255,255,0.5) 50%, transparent 51%), radial-gradient(1px 1px at 14% 88%, #fff 50%, transparent 51%);
+  background-size: 520px 520px; }
+#globe { position: fixed; left: 0; top: 0; z-index: 0; width: 100vw; height: 100vh; height: 100lvh; pointer-events: none; opacity: 0; }
+.globe-still { position: fixed; z-index: 0; pointer-events: none; width: min(150vw, 900px); left: 50%; bottom: -38vw; transform: translateX(-50%); opacity: 0.85; transition: opacity 1.6s ease; }
+.globe-still.off { opacity: 0; }
+@media (min-width: 900px) { .globe-still { width: 860px; left: auto; right: -80px; bottom: auto; top: 50%; transform: translateY(-50%); } }
+.shade { text-shadow: 0 2px 30px rgba(3, 4, 9, 0.9), 0 0 2px rgba(3, 4, 9, 0.6); }
+
+/* 首屏 */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 640px; }
+nav { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 0; }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 16px; letter-spacing: 0.12em; white-space: nowrap; }
+.mark img { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 0 0 1px var(--line); }
+.langs { display: flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgba(243, 238, 230, 0.05); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.langs a { min-width: 32px; text-align: center; padding: 3px 9px; border-radius: 99px; text-decoration: none; color: var(--muted); white-space: nowrap; }
+.langs a[aria-current] { color: var(--ink); background: rgba(243, 238, 230, 0.1); }
+.copy { position: relative; z-index: 2; padding-top: 5vh; max-width: 640px; will-change: opacity, transform; }
+.eyebrow { display: flex; align-items: center; gap: 12px; font-size: 14px; letter-spacing: 0.32em; color: var(--gold);  }
+.eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.7; }
+h1 { width: fit-content; margin: 18px 0 0; font-family: var(--display); font-weight: 500; font-size: clamp(36px, 9.8vw, 74px);
+  line-height: 1.32; letter-spacing: 0.04em; }
+.lead { margin: 18px 0 0; max-width: 24em; font-size: 17px; color: var(--body); text-wrap: pretty; }
+.ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin-top: 28px; }
+.cta { display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 26px 0 22px; border-radius: 99px; background: var(--ink); color: #07080C;
+  text-decoration: none; font-size: 17px; white-space: nowrap; letter-spacing: 0.04em; 
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.4), 0 14px 44px -12px rgba(232, 200, 144, 0.6); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.cta svg { width: 18px; height: 18px; flex: none; }
+.cta:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(255,255,255,0.5), 0 20px 54px -12px rgba(232, 200, 144, 0.8); }
+.cta:active { transform: scale(0.98); }
+.sub { font-size: 14px; color: var(--muted); }
+.region { margin: 14px 0 0; max-width: 32em; font-size: 13px; line-height: 1.65; color: var(--muted); }
+.tip { display: none; margin: 14px 0 0; max-width: 30em; padding: 12px 14px; border-radius: 14px; font-size: 15px; color: var(--ink);
+  background: rgba(20, 18, 14, 0.85); box-shadow: inset 0 0 0 1px rgba(232, 200, 144, 0.35); }
+.tip.on { display: block; }
+.cue { position: absolute; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: 12px; letter-spacing: 0.3em; color: var(--muted); }
+.cue::after { content: ''; width: 1px; height: 34px; background: linear-gradient(var(--gold), transparent); animation: cue 2.2s ease-in-out infinite; transform-origin: top; }
+@keyframes cue { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+
+/* 地球讲故事的几幕：段落很高，里面的字停在屏幕上 */
+.scene { position: relative; }
+.sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+.text { padding-top: 13svh; max-width: 460px; will-change: opacity, transform; }
+.tag { display: flex; align-items: baseline; gap: 14px; color: var(--gold); }
+.tag .num { font-size: 56px; line-height: 1; }
+.tag span:last-child { font-size: 14px; letter-spacing: 0.28em;  }
+h2 { margin: 16px 0 0; font-family: var(--display); font-weight: 500; font-size: clamp(28px, 7.6vw, 46px);
+  line-height: 1.36; letter-spacing: 0.04em; }
+.text p, .step p { margin: 16px 0 0; max-width: 26em; font-size: 16px; color: var(--body); text-wrap: pretty; }
+.big { display: flex; align-items: baseline; gap: 10px; margin-top: 20px; color: var(--gold); }
+.big b { font-family: FPSerif, Georgia, serif; font-weight: 300; font-size: 64px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+.big span { font-size: 15px; color: var(--body); }
+.skin-name { position: relative; height: 64px; margin-top: 22px; }
+.skin-name span { position: absolute; left: 0; top: 0; font-family: var(--display); font-size: 38px; color: var(--gold); opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; white-space: nowrap; }
+.skin-name span.on { opacity: 1; transform: none; }
+
+/* 手机停住，三段字轮着换，屏幕跟着换（字一直往上滚会滑到手机上，所以改成停在原地轮换） */
+.ph > .wrap { width: 100%; }
+.ph-texts { position: relative; height: 44svh; }
+.step { position: absolute; left: 0; right: 0; top: 11svh; max-width: 440px; opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.step.on { opacity: 1; transform: none; }
+.ph-phone { position: absolute; left: 0; right: 0; bottom: calc(86px + env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+.ph-phone::before { content: ''; position: absolute; left: 50%; bottom: -30%; width: 140vw; max-width: 900px; aspect-ratio: 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(232, 200, 144, 0.16), transparent 70%); }
+.phone { position: relative; width: min(60vw, 21svh); aspect-ratio: 1320 / 2868; padding: 3.2%; border-radius: 15% / 7%;
+  background: linear-gradient(150deg, #3A3D45, #15171C 40%, #0C0D10 70%, #2A2C31);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), inset 0 0 0 4px #050608, 0 60px 100px -40px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.6); will-change: transform; }
+.screens { position: relative; width: 100%; height: 100%; border-radius: 12.4% / 5.8%; overflow: hidden; background: #000; }
+.screens img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.7s ease; }
+.screens img.on { opacity: 1; }
+.phone::after { content: ''; position: absolute; left: 50%; top: 4.6%; width: 28%; height: 3.4%; transform: translateX(-50%); border-radius: 99px; background: #000; }
+
+/* 海报飞进来 */
+.prints { position: absolute; left: 0; right: 0; bottom: 4svh; height: 56svh; }
+.prints img { position: absolute; left: 50%; top: 50%; width: min(56vw, 34svh); aspect-ratio: 3 / 4; border-radius: 6px; will-change: transform; opacity: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 40px 80px -30px rgba(0,0,0,0.95); }
+
+/* 隐私：一句大字随滚动逐字亮起 */
+.vow .sticky { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 22px; }
+.vow-text { margin: 18px 0 0; font-family: var(--display); font-weight: 500; font-size: clamp(36px, 10vw, 76px); line-height: 1.34; letter-spacing: 0.05em; }
+.vow-text span { opacity: 0.14; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; max-width: 760px; margin-top: 48px; border-top: 1px solid var(--line); opacity: 0; }
+.facts div { padding: 20px 4px 0; }
+.facts div + div { border-left: 1px solid var(--line); }
+.facts b { display: block; font-size: 17px; font-weight: inherit; color: var(--ink); }
+.facts span { display: block; margin-top: 4px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* 收尾：地球从底边升回来 */
+.end { display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 100vh; min-height: 100svh; padding: 16svh 22px 0; }
+.end > img { width: 88px; height: 88px; border-radius: 20px; box-shadow: 0 0 0 1px var(--line), 0 24px 80px -10px rgba(80, 140, 255, 0.55); }
+.end h2 { margin-top: 28px; }
+.end .ctas { justify-content: center; }
+footer { position: relative; padding: 24px 22px calc(110px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);
+  background: linear-gradient(rgba(3, 4, 9, 0.7), var(--bg)); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0; }
+footer a { text-decoration: none; }
+footer span { flex-basis: 100%; }
+
+.bar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 5; display: flex; align-items: center; gap: 12px;
+  padding: 10px 10px 10px 12px; border-radius: 20px; background: rgba(18, 20, 28, 0.78); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px var(--line), 0 12px 40px rgba(0, 0, 0, 0.5); transform: translateY(160%); transition: transform 0.4s cubic-bezier(.2,.7,.2,1); }
+.bar.on { transform: none; }
+.bar img { width: 40px; height: 40px; border-radius: 10px; }
+.bar b { flex: 1; min-width: 0; font-size: 16px; font-weight: inherit; line-height: 1.25; }
+.bar b small { display: block; font-size: 12px; color: var(--muted); }
+.bar a { padding: 8px 18px; border-radius: 99px; background: var(--ink); color: #07080C; text-decoration: none; font-size: 15px;  }
+
+@media (max-width: 370px) { .mark span { display: none; } }
+@media (min-width: 900px) {
+  .copy { padding-top: 16vh; }
+  .sticky { display: flex; align-items: center; }
+  .sticky > .wrap { width: 100%; }
+  .text { padding-top: 0; }
+  .tag .num { font-size: 80px; }
+  h2 { font-size: 52px; }
+  .text p, .step p { font-size: 18px; }
+  .text, .step { max-width: 520px; }
+  .ph-texts { height: 340px; }
+  .step { top: 0; }
+  .ph-phone { top: 0; bottom: 0; align-items: center; justify-content: flex-end; justify-content: flex-end; padding-right: max(8vw, calc(50vw - 520px)); }
+  .ph-phone::before { left: auto; right: 0; bottom: auto; top: 50%; transform: translate(10%, -50%); }
+  .phone { width: min(330px, 32vh); }
+  .prints { left: auto; right: max(4vw, calc(50vw - 560px)); width: 46vw; max-width: 620px; top: 0; bottom: 0; height: auto; }
+  .prints img { width: min(360px, 42vh); }
+  .facts div { padding: 26px 28px 0; }
+  .bar { display: none; }
+  footer { padding-bottom: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cue::after { animation: none; }
+}
 </style>
 </head>
 <body>
-<main>
-<div class="top"><a class="brand" href="index.html">足迹星球</a><span class="lang"><a href="en/index.html">English</a> · <a href="ja/index.html">日本語</a></span></div>
-<h1>足迹星球</h1>
-<p>把旅行装进地球，把故事留在沿途。记下去过的每一座城市、每一趟航线、每一张照片和每一段话，记得越多，它就越亮。</p>
-<p class="muted">记录只存在你自己的手机上，不上传，没有广告，也不接入任何第三方统计。</p>
-<div class="links">
+<div class="sky"></div>
+<img class="globe-still" src="assets/earth.webp" alt="" width="1200" height="1200" fetchpriority="high">
+<canvas id="globe" data-base="assets/"></canvas>
+<div class="page">
+<header class="hero" data-scene="hero">
+<div class="wrap">
+<nav><a class="mark" href="index.html"><img src="assets/icon.png" alt=""><span>足迹星球</span></a>
+<span class="langs"><a href="index.html" aria-current="page">简</a><a href="zh-hant/index.html">繁</a><a href="en/index.html">EN</a><a href="ja/index.html">日</a></span></nav>
+<div class="copy shade">
+<div class="eyebrow">旅行足迹地图</div>
+<h1>把旅行装进地球，<br>把故事留在沿途</h1>
+<p class="lead">在一颗会转的3D地球上，点亮你去过的每一个国家和城市。</p>
+<div class="ctas"><a class="cta" id="get" href="https://apps.apple.com/app/id6836229949"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v11m0 0-4.5-4.5M10 14l4.5-4.5M4 17h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>在 App Store 下载</a><span class="sub">免费 · iPhone</span></div>
+<p class="tip" id="tip-wx">微信里打不开 App Store：点右上角「···」，选「在默认浏览器中打开」，再点下载。</p>
+<p class="tip" id="tip-and">足迹星球目前只有 iPhone 版。</p>
+<p class="region">中国大陆以外地区的 App Store 都能下载，中国大陆的 App Store 暂时还没有上架。</p>
+</div>
+</div>
+<div class="cue">往下滑</div>
+</header>
+
+<section class="scene" data-scene="visit" style="height: 260svh">
+<div class="sticky"><div class="wrap"><div class="text shade" data-fade>
+<div class="tag"><span class="num">01</span><span>点亮</span></div>
+<h2>去过的国家，<br>在地球上亮起来</h2>
+<p>点进一个国家，看你在那里去过的城市、待了几天、拍了哪些照片。</p>
+<div class="big"><b data-count="visit">0</b><span>个国家和地区</span></div>
+</div></div></div>
+</section>
+
+<section class="scene" data-scene="routes" style="height: 240svh">
+<div class="sticky"><div class="wrap"><div class="text shade" data-fade>
+<div class="tag"><span class="num">02</span><span>航线</span></div>
+<h2>每一趟出发，<br>都画成一条航线</h2>
+<p>填好从哪里出发、去了哪几座城市，航线自动画出来。同一段路走得越多，航线越密。</p>
+<div class="big"><b data-count="km" data-to="186540">0</b><span>公里</span></div>
+</div></div></div>
+</section>
+
+<section class="scene" data-scene="night" style="height: 220svh">
+<div class="sticky"><div class="wrap"><div class="text shade" data-fade>
+<div class="tag"><span class="num">03</span><span>夜晚</span></div>
+<h2>转到夜里那一面，<br>城市都亮着灯</h2>
+<p>地球按真实的太阳分出白天和黑夜，转到夜里那一面，能看到城市的灯光。</p>
+</div></div></div>
+</section>
+
+<section class="scene" data-scene="skins" style="height: 340svh">
+<div class="sticky"><div class="wrap"><div class="text shade" data-fade>
+<div class="tag"><span class="num">04</span><span>皮肤</span></div>
+<h2>五颗地球，<br>五种玩法</h2>
+<p>一直往下滑，地球会换一身样子。</p>
+<div class="skin-name"><span class="on">真实地貌</span><span>航图</span><span>点阵星球</span><span>黑金</span><span>珠光</span></div>
+</div></div></div>
+</section>
+
+<section class="scene phones" data-scene="phones" style="height: 330svh">
+<div class="sticky ph">
+<div class="wrap"><div class="ph-texts">
+<div class="step shade on"><div class="tag"><span class="num">05</span><span>记录</span></div><h2>记一趟旅行，<br>只要几秒</h2><p>城市和日期点几下就填好。也能从相册导入，照片的拍摄地点和日期一起带进来。</p></div>
+<div class="step shade"><div class="tag"><span class="num">06</span><span>回忆</span></div><h2>哪一年去了哪里，<br>时间轴上都记着</h2><p>每一站按日子排好，照片和那天写下的话都留在上面。</p></div>
+<div class="step shade"><div class="tag"><span class="num">07</span><span>收集</span></div><h2>每到一个新国家，<br>收下一张邮票</h2><p>攒成一本邮票册，还有一面勋章墙，记着你走过的每一个国家。</p></div>
+</div></div>
+<div class="ph-phone"><div class="phone"><div class="screens"><img src="assets/ui-zh/record.webp" alt="记一趟旅行，只要几秒" class="on" decoding="async"><img src="assets/ui-zh/timeline.webp" alt="哪一年去了哪里，时间轴上都记着" decoding="async"><img src="assets/ui-zh/stamps.webp" alt="每到一个新国家，收下一张邮票" decoding="async"></div></div></div>
+</div>
+</section>
+
+<section class="scene" data-scene="poster" style="height: 220svh">
+<div class="sticky"><div class="wrap"><div class="text shade" data-fade>
+<div class="tag"><span class="num">08</span><span>分享</span></div>
+<h2>一张海报，<br>说完你的旅行</h2>
+<p>去过几个国家、走了多少公里、绕了地球几圈，生成一张海报，发朋友圈和小红书。</p>
+</div></div>
+<div class="prints"><img src="assets/poster-night.webp" alt="" loading="lazy"><img src="assets/ui-zh/poster.webp" alt="一张海报，说完你的旅行" loading="lazy"></div>
+</div>
+</section>
+
+<section class="scene vow" data-scene="vow" style="height: 240svh">
+<div class="sticky">
+<div class="tag"><span>隐私</span></div>
+<div class="vow-text"><span>记</span><span>录</span><span>只</span><span>存</span><span>在</span><br><span>你</span><span>的</span><span>手</span><span>机</span><span>里</span><span>。</span></div>
+<div class="facts"><div><b>不用注册</b><span>打开就能用</span></div><div><b>不上传</b><span>记录只在手机上</span></div><div><b>没有广告</b><span>也不做统计</span></div></div>
+</div>
+</section>
+
+<section class="end shade" data-scene="end">
+<img src="assets/icon.png" alt="" width="88" height="88" loading="lazy">
+<h2>去点亮你的<br>第一个国家</h2>
+<div class="ctas"><a class="cta" id="get2" href="https://apps.apple.com/app/id6836229949"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v11m0 0-4.5-4.5M10 14l4.5-4.5M4 17h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>在 App Store 下载</a><span class="sub">免费 · iPhone</span></div>
+<p class="region">中国大陆以外地区的 App Store 都能下载，中国大陆的 App Store 暂时还没有上架。</p>
+</section>
+
+<footer><div class="wrap">
 <a href="support.html">技术支持和常见问题</a>
 <a href="privacy.html">隐私政策</a>
 <a href="terms.html">用户协议</a>
+<span>© 2026 李一鸣</span>
+</div></footer>
 </div>
-<footer>© 2026 李一鸣</footer>
-</main>
+
+<div class="bar" id="bar"><img src="assets/icon.png" alt=""><b>足迹星球<small>免费 · iPhone</small></b><a href="https://apps.apple.com/app/id6836229949">下载</a></div>
+
+<script src="assets/story.js" defer></script>
+<script>
+(function () {
+  var ua = navigator.userAgent;
+  var wx = /MicroMessenger/i.test(ua), android = /Android/i.test(ua);
+  // 微信里点 App Store 链接没反应，改成显示一句怎么换到浏览器打开；安卓手机提示只有 iPhone 版
+  document.querySelectorAll('a[href="https://apps.apple.com/app/id6836229949"]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (!wx && !android) return;
+      e.preventDefault();
+      document.getElementById(wx ? 'tip-wx' : 'tip-and').classList.add('on');
+      window.scrollTo({ top: 0 });
+    });
+  });
+  // 首屏的下载按钮滑出去以后，手机底下浮一条下载栏；滑到最后那个下载按钮时收起来
+  var bar = document.getElementById('bar'), seen = { get: true, get2: false };
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { seen[e.target.id] = e.isIntersecting; }); bar.classList.toggle('on', !seen.get && !seen.get2); });
+    io.observe(document.getElementById('get')); io.observe(document.getElementById('get2'));
+  }
+})();
+</script>
 </body>
 </html>
